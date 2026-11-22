@@ -1,0 +1,48 @@
+# Запуск магазина на сервере одной командой:
+#   docker compose up -d --build
+#
+# Токен и настройки берутся из ПЕРЕМЕННЫХ ОКРУЖЕНИЯ.
+# Docker Compose сам подхватывает файл .env из этой папки — если он есть.
+#
+#   export BOT_TOKEN=123456:AA...        # прямо в окружении сервера
+#   export DEMO_MODE=false
+#   docker compose up -d --build
+#
+# Файлы:
+#   .env         — необязательно: те же значения текстом, если их нет в окружении
+#   data/        — база заказов (живёт между перезапусками)
+#   app/assets/  — PDF-гайд и обложка (монтируются только на чтение)
+
+services:
+  shop:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: arena-store:latest
+    container_name: arena-store
+    restart: unless-stopped
+    environment:
+      BOT_TOKEN: ${BOT_TOKEN}
+      PRODUCT_NAME: ${PRODUCT_NAME:-Гайд по AI-агенту}
+      PRICE_STARS: ${PRICE_STARS:-219}
+      OLD_PRICE_STARS: ${OLD_PRICE_STARS:-399}
+      SERVICE_NAME: ${SERVICE_NAME:-Arena.ai}
+      SERVICE_URL: ${SERVICE_URL:-https://arena.ai}
+      SERVICE_AGENT_URL: ${SERVICE_AGENT_URL:-https://arena.ai/agent}
+      FREE_USERNAMES: ${FREE_USERNAMES:-}
+      FREE_USER_IDS: ${FREE_USER_IDS:-}
+      ADMIN_IDS: ${ADMIN_IDS:-}
+      ADMIN_USERNAMES: ${ADMIN_USERNAMES:-}
+      REVIEWS_URL: ${REVIEWS_URL:-}
+      SUPPORT_URL: ${SUPPORT_URL:-}
+      CHANNEL_URL: ${CHANNEL_URL:-}
+      DEMO_MODE: ${DEMO_MODE:-true}
+      DB_FILE: /app/data/shop.db
+    volumes:
+      - ./data:/app/data
+      - ./app/assets:/app/assets:ro
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

@@ -1,0 +1,37 @@
+# systemd-юнит для магазина. Устанавливается скриптом install.sh systemd:
+#   install -m 644 arena-store.service /etc/systemd/system/arena-store.service
+#   systemctl daemon-reload && systemctl enable --now arena-store
+
+[Unit]
+Description=Arena Store — Telegram shop bot
+Documentation=https://core.telegram.org/bots
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=arena
+Group=arena
+WorkingDirectory=/opt/arena-store
+Environment=PYTHONUNBUFFERED=1
+# Токен и настройки — из файла, который создаёт install.sh
+EnvironmentFile=-/opt/arena-store/.env
+ExecStart=/opt/arena-store/.venv/bin/python bot.py
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=5
+TimeoutStopSec=20
+
+# журнал
+StandardOutput=append:/var/log/arena-store.log
+StandardError=append:/var/log/arena-store.log
+
+# изоляция
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/opt/arena-store/data
+
+[Install]
+WantedBy=multi-user.target
